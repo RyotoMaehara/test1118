@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- デザイン設定（変更なし） --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
+        .page-header { text-align: center; margin-bottom: 1.5rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+        .step-indicator { display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.75rem; background-color: #e5e7eb; color: #374151; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; }
+        .video-container { box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; background-color: #000; width: 640px; height: 360px; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; display: block; }
+        .popup-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 50; opacity: 0; visibility: hidden; }
+        .popup-overlay.is-visible { opacity: 1; visibility: visible; }
+        .popup-content { position: relative; background-color: #ffffff; width: 91.6667%; height: 83.3333%; max-width: 848px; max-height: 477px; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; }
+        .popup-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background-color: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
+        .popup-header-text { font-size: 0.875rem; color: #4b5563; font-weight: 600; }
+        .popup-close-button { background-color: #ef4444; color: #ffffff; font-weight: 700; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 1rem; border: none; cursor: pointer; transition: background-color 150ms ease-in-out; }
+        .popup-close-button:hover { background-color: #dc2626; }
+        .main-content-area { position: relative; flex-grow: 1; display: flex; overflow: hidden; }
+        .choices-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; background-size: cover; background-position: center; background-repeat: no-repeat; gap: 1rem; }
+        .choice-button { width: 80%; max-width: 20rem; font-size: 1.125rem; padding: 0.75rem 1.25rem; background-color: #f2f2f2; color: #0f0f0f; font-weight: 700; border-radius: 9999px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #dcdcdc; cursor: pointer; transition: transform 0.1s, background-color 0.2s; }
+        .choice-button:hover { background-color: #e5e5e5; }
+        .choice-button:active { transform: scale(0.98); }
+        .iframe-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #fff; }
+        .iframe-content { width: 100%; height: 100%; border: none; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <h1 class="page-title">動画広告体験デモ</h1>
+        <div id="stepIndicator" class="step-indicator">Step 1 / 5</div>
+    </div>
+
+    <div class="video-container">
+        <video id="myVideo" autoplay muted playsinline controls width="640" height="360">
+            お使いのブラウザは動画タグに対応していません。
+        </video>
+    </div>
+
+    <div id="interstitialOverlay" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <p class="popup-header-text" id="popupTitle">ⓘ広告</p>
+                <button id="nextScenarioButton" class="popup-close-button">(Ｘ</button>
+            </div>
+            <div class="main-content-area">
+                <div id="choicesContainer" class="choices-container"></div>
+                <div id="iframeWrapper" class="iframe-wrapper hidden">
+                    <iframe id="interstitialFrame" class="iframe-content" src=""></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ▼▼▼▼▼ GASのURL (更新不要ですが念のため確認を) ▼▼▼▼▼
+        const POST_URL = 'https://script.google.com/macros/s/AKfycbzzMRUbz5eVpJGZPmGPRQ8rlHZvaS10ySDvFphGwOGqz15avk5dwSrmBp_TIgZlQEEK/exec'; 
+
+        // --- ユーザーID ---
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        const USER_ID = generateUUID();
+        console.log("UserID:", USER_ID);
+
+        // --- シナリオデータ ---
+        const scenarioData = [
+            {
+                // ▼ 動画ファイル名（同じフォルダに置いてあるファイル名、またはネット上のURL）
+                videoSrc: "10007388-uhd_3840_2160_30fps.mp4",
+                // ▼ 背景画像（動画が終わった後に後ろに出る画像）
+                bgImage: "your-image-1.jpg",
+                // ▼ ボタンの設定（いくつでも増やせる）
+                choices: [{ text: "詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
+                // ▼ 演出設定（フェード秒数や、ポップアップのタイトル）
+                styleSettings: { transition: "none", title: "１" }
+            },
+            {
+                videoSrc: "10007388-uhd_3840_2160_30fps.mp4",
+                bgImage: "your-image-2.jpg",
+                choices: [{ text: "詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
+                styleSettings: { transition: "opacity 1.0s ease-in-out", title: "２" }
+            },
+            {
+                videoSrc: "10007388-uhd_3840_2160_30fps.mp4",
+                bgImage: "your-image-3.jpg",
+                choices: [
+                    { text: "A", url: "https://enjoy-minakami.jp/eat.php" },
+                    { text: "B", url: "https://enjoy-minakami.jp/eat.php" }
+                ],
+                styleSettings: { transition: "none", title: "３" }
+            },
+            {
+                videoSrc: "10007388-uhd_3840_2160_30fps.mp4",
+                bgImage: "your-image-4.jpg",
+                choices: [
+                    { text: "A", url: "https://enjoy-minakami.jp/eat.php" },
+                    { text: "B", url: "https://enjoy-minakami.jp/eat.php" }
+                ],
+                styleSettings: { transition: "opacity 1.0s ease-in-out", title: "４" }
+            },
+            {
+                videoSrc: "10007388-uhd_3840_2160_30fps.mp4",
+                bgImage: "your-image-5.jpg",
+                choices: [{ text: "詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
+                styleSettings: { transition: "none", title: "５" }
+            }
+        ];
+
+        // --- 変数 ---
+        let currentIndex = 0;
+        const video = document.getElementById('myVideo');
+        const stepIndicator = document.getElementById('stepIndicator');
+        const overlay = document.getElementById('interstitialOverlay');
+        const popupTitle = document.getElementById('popupTitle');
+        const choicesContainer = document.getElementById('choicesContainer');
+        const iframeWrapper = document.getElementById('iframeWrapper');
+        const iframe = document.getElementById('interstitialFrame');
+        const nextButton = document.getElementById('nextScenarioButton');
+
+        function init() { loadScenario(0); }
+
+        function loadScenario(index) {
+            const data = scenarioData[index];
+            
+            // UIリセット
+            overlay.classList.remove('is-visible');
+            overlay.style.transition = ''; 
+            choicesContainer.classList.remove('hidden');
+            iframeWrapper.classList.add('hidden');
+            iframe.src = 'about:blank';
+            document.body.style.overflow = 'auto';
+
+            // データ反映
+            stepIndicator.textContent = `Step ${index + 1} / ${scenarioData.length}`;
+            video.src = data.videoSrc;
+            choicesContainer.style.backgroundImage = `url('${data.bgImage}')`;
+            if(data.styleSettings.title) popupTitle.textContent = data.styleSettings.title;
+
+            // ボタン生成
+            choicesContainer.innerHTML = '';
+            data.choices.forEach((choice, btnIndex) => {
+                const btn = document.createElement('button');
+                btn.textContent = choice.text;
+                btn.className = 'choice-button';
+                
+                const buttonId = `${index + 1}-${btnIndex + 1}`;
+
+                btn.addEventListener('click', () => {
+                    sendLogToGAS(index + 1, buttonId, choice.text, "clicked");
+                    console.log(`Navigating to: ${choice.url}`);
+                    choicesContainer.classList.add('hidden');
+                    iframeWrapper.classList.remove('hidden');
+                    iframe.src = choice.url;
+                });
+                choicesContainer.appendChild(btn);
+            });
+
+            // 動画再生（エラーハンドリング付き）
+            video.load();
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("自動再生がブロックされました。ユーザー操作を待ちます。", error);
+                });
+            }
+        }
+
+        // 動画終了時
+        video.addEventListener('ended', () => {
+            const settings = scenarioData[currentIndex].styleSettings;
+            overlay.style.transition = settings.transition ? settings.transition : 'none';
+            
+            setTimeout(() => { overlay.classList.add('is-visible'); }, 20);
+            
+            sendLogToGAS(currentIndex + 1, "none", "Video Ended", "view");
+            document.body.style.overflow = 'hidden';
+        });
+
+        // 閉じるボタン
+        nextButton.addEventListener('click', () => {
+            sendLogToGAS(currentIndex + 1, "close", "Close Button", "skipped/next");
+            
+            currentIndex++;
+            if (currentIndex < scenarioData.length) {
+                loadScenario(currentIndex);
+            } else {
+                alert("終了です。ご協力ありがとうございました。");
+                overlay.classList.remove('is-visible');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // ▼▼▼▼▼ 修正版ログ送信関数 (fetch + text/plain) ▼▼▼▼▼
+        function sendLogToGAS(step, buttonId, targetName, action) {
+            if (POST_URL.includes('XXXXXXXXXXXXXXXXXXXX')) return;
+
+            const data = {
+                userId: USER_ID,
+                step: step,
+                buttonId: buttonId,
+                target: targetName,
+                action: action
+            };
+
+            // POST送信ですが、mode: 'no-cors' と headers: 'text/plain' を組み合わせます
+            // これによりブラウザは単純なリクエストとして処理し、ブロックしません
+            fetch(POST_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(() => console.log("Log sent:", data))
+            .catch(err => console.error("Log failed:", err));
+        }
+
+        init();
+    </script>
+</body>
+</html>
