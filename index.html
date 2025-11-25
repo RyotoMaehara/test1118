@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- デザイン設定（変更なし） --- */
+        /* --- デザイン設定 --- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
         .page-header { text-align: center; margin-bottom: 1.5rem; }
@@ -61,10 +61,10 @@
     </div>
 
     <script>
-        // ▼▼▼▼▼ GASのURL (更新不要ですが念のため確認を) ▼▼▼▼▼
+        // ▼▼▼▼▼ GASのURL (要確認) ▼▼▼▼▼
         const POST_URL = 'https://script.google.com/macros/s/AKfycbzzMRUbz5eVpJGZPmGPRQ8rlHZvaS10ySDvFphGwOGqz15avk5dwSrmBp_TIgZlQEEK/exec'; 
 
-        // --- ユーザーID ---
+        // --- ユーザーID生成 ---
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
                 const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -74,7 +74,7 @@
         const USER_ID = generateUUID();
         console.log("UserID:", USER_ID);
 
-        // --- シナリオデータ ---
+        // --- シナリオ設定 ---
         const scenarioData = [
             {
                 // ▼ 動画ファイル名（同じフォルダに置いてあるファイル名、またはネット上のURL）
@@ -82,22 +82,22 @@
                 // ▼ 背景画像（動画が終わった後に後ろに出る画像）
                 bgImage: "1_image_eat.jpg",
                 // ▼ ボタンの設定（いくつでも増やせる）
-                choices: [{ text: "詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
-                // ▼ 演出設定（フェード秒数や、ポップアップのタイトル）
+                choices: [{ text: "「みなかみ　そば」の詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
+                // ▼ 演出設定（フェード秒数、ポップアップのタイトル）
                 styleSettings: { transition: "none", title: "１" }
             },
             {
                 videoSrc: "2_video_buy.mp4",
                 bgImage: "2_image_buy.jpg",
-                choices: [{ text: "詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
+                choices: [{ text: "道の駅に興味はありませんか？", url: "https://enjoy-minakami.jp/buy.php" }],
                 styleSettings: { transition: "opacity 1.0s ease-in-out", title: "２" }
             },
             {
                 videoSrc: "3_video_outdoor.mp4",
                 bgImage: "3_image_outdoor.jpg",
                 choices: [
-                    { text: "A", url: "https://enjoy-minakami.jp/eat.php" },
-                    { text: "B", url: "https://enjoy-minakami.jp/eat.php" }
+                    { text: "冬と言えば「スキー」", url: "https://enjoy-minakami.jp/outdoor.php" },
+                    { text: "冬と言えば「温泉」", url: "https://enjoy-minakami.jp/spa.php" }
                 ],
                 styleSettings: { transition: "none", title: "３" }
             },
@@ -105,15 +105,15 @@
                 videoSrc: "4_video_see.mp4",
                 bgImage: "4_image_see.jpg",
                 choices: [
-                    { text: "A", url: "https://enjoy-minakami.jp/eat.php" },
-                    { text: "B", url: "https://enjoy-minakami.jp/eat.php" }
+                    { text: "「紅葉スポット」をチェック", url: "https://enjoy-minakami.jp/place.php" },
+                    { text: "「パワースポット」をチェック", url: "https://enjoy-minakami.jp/see.php" }
                 ],
                 styleSettings: { transition: "opacity 1.0s ease-in-out", title: "４" }
             },
             {
                 videoSrc: "5_video_stay.mp4",
                 bgImage: "5_image_stay.jpg",
-                choices: [{ text: "詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
+                choices: [{ text: "旅館の詳細はこちら", url: "https://enjoy-minakami.jp/stay.php" }],
                 styleSettings: { transition: "none", title: "５" }
             }
         ];
@@ -167,7 +167,7 @@
                 choicesContainer.appendChild(btn);
             });
 
-            // 動画再生（エラーハンドリング付き）
+            // 動画再生（エラーハンドリングあり）
             video.load();
             const playPromise = video.play();
             if (playPromise !== undefined) {
@@ -177,7 +177,7 @@
             }
         }
 
-        // 動画終了時
+        // 動画終了後動作
         video.addEventListener('ended', () => {
             const settings = scenarioData[currentIndex].styleSettings;
             overlay.style.transition = settings.transition ? settings.transition : 'none';
@@ -196,13 +196,13 @@
             if (currentIndex < scenarioData.length) {
                 loadScenario(currentIndex);
             } else {
-                alert("終了です。ご協力ありがとうございました。");
+                alert("これにて全て終了です。ご協力ありがとうございました。");
                 overlay.classList.remove('is-visible');
                 document.body.style.overflow = 'auto';
             }
         });
 
-        // ▼▼▼▼▼ 修正版ログ送信関数 (fetch + text/plain) ▼▼▼▼▼
+        // ▼▼▼▼▼ ログ送信関数 (fetch + text/plain) ▼▼▼▼▼
         function sendLogToGAS(step, buttonId, targetName, action) {
             if (POST_URL.includes('XXXXXXXXXXXXXXXXXXXX')) return;
 
@@ -214,8 +214,8 @@
                 action: action
             };
 
-            // POST送信ですが、mode: 'no-cors' と headers: 'text/plain' を組み合わせます
-            // これによりブラウザは単純なリクエストとして処理し、ブロックしません
+            // POST送信だが、mode: 'no-cors' と headers: 'text/plain' を組み合わせる
+            // これによりブラウザは単純なリクエストとして処理し、ブロックされない
             fetch(POST_URL, {
                 method: 'POST',
                 mode: 'no-cors',
