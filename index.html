@@ -3,232 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ad model test demo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>AdnUI Experiment Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Hiragino+Kaku+Gothic+ProN&display=swap" rel="stylesheet">
     
     <style>
-        /* --- デザイン設定 --- */
+        /* --- 1. 基本設定 (Reset & Base) --- */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
-        .page-header { text-align: center; margin-bottom: 1.5rem; }
-        .page-title { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
-        .step-indicator { display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.75rem; background-color: #e5e7eb; color: #374151; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; }
-        .video-container { box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; background-color: #000; width: 640px; height: 360px; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; display: block; }
-        .popup-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 50; opacity: 0; visibility: hidden; }
-        .popup-overlay.is-visible { opacity: 1; visibility: visible; }
-        .popup-content { position: relative; background-color: #ffffff; width: 91.6667%; height: 83.3333%; max-width: 848px; max-height: 477px; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; }
-        .popup-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background-color: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
-        .popup-header-text { font-size: 0.875rem; color: #4b5563; font-weight: 600; }
-        .popup-close-button { background-color: #ef4444; color: #ffffff; font-weight: 700; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 1rem; border: none; cursor: pointer; transition: background-color 150ms ease-in-out; }
-        .popup-close-button:hover { background-color: #dc2626; }
-        .main-content-area { position: relative; flex-grow: 1; display: flex; overflow: hidden; }
-        .choices-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; background-size: cover; background-position: center; background-repeat: no-repeat; gap: 1rem; }
-        .choice-button { width: 80%; max-width: 20rem; font-size: 1.125rem; padding: 0.75rem 1.25rem; background-color: #309afa; color: #0f0f0f; font-weight: 700; border-radius: 9999px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #dcdcdc; cursor: pointer; transition: transform 0.1s, background-color 0.2s; }
-        .choice-button:hover { background-color: #00a8f3; }
-        .choice-button:active { transform: scale(0.98); }
-        .iframe-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #fff; }
+        body { 
+            font-family: 'Inter', "Hiragino Kaku Gothic ProN", sans-serif; 
+            background-color: #222; 
+            color: #fff; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            padding: 20px; /* スマホで端が詰まらないように余白 */
+        }
+        
+        /* --- 2. スタート・終了画面 --- */
+        .info-container { 
+            text-align: center; 
+            width: 100%;
+            max-width: 600px; 
+            padding: 2rem; 
+            background: #333; 
+            border-radius: 12px; 
+            display: none; /* 初期状態は非表示 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
+        .info-container.active { display: block; animation: fadeIn 0.5s ease; }
+        
+        .title-large { font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem; }
+        .desc-text { font-size: 1rem; color: #ccc; margin-bottom: 2rem; line-height: 1.6; }
+        
+        .btn-start { 
+            background: linear-gradient(135deg, #309afa, #2563eb); 
+            color: white; border: none; padding: 1.2rem 3rem; border-radius: 50px; 
+            font-size: 1.2rem; font-weight: bold; cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(48, 154, 250, 0.4); transition: 0.3s; 
+        }
+
+        /* 振り返り用リンク */
+        .review-links { margin-top: 2rem; border-top: 1px solid #555; padding-top: 1rem; text-align: left; }
+        .review-link-item { display: block; padding: 10px; color: #aaa; text-decoration: none; border-bottom: 1px solid #444; transition: 0.2s; }
+        .review-link-item:hover { color: #fff; background: #444; padding-left: 15px; }
+
+        /* --- 3. 実験画面レイアウト (スマホ対応) --- */
+        .page-header { position: absolute; top: 20px; text-align: center; z-index: 10; width: 100%; pointer-events: none; }
+        .step-badge { display: inline-block; background: rgba(0,0,0,0.6); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #555; }
+
+        /* ★動画エリア (レスポンシブ対応) */
+        .video-wrapper { 
+            position: relative; 
+            width: 100%;             /* 横幅いっぱい */
+            max-width: 640px;        /* PCでは640pxで止める */
+            aspect-ratio: 16 / 9;    /* アスペクト比を固定 */
+            background: #000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border-radius: 8px; 
+            overflow: hidden; 
+            display: none; 
+        }
+        .video-wrapper.active { display: block; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- 4. UIオーバーレイ --- */
+        .popup-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 50; visibility: hidden; opacity: 0; 
+            transition: opacity 0.5s ease;
+        }
+        .popup-overlay.is-visible { visibility: visible; opacity: 1; }
+
+        .bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: -1; filter: brightness(0.4); }
+        .choices-container { 
+            display: flex; flex-direction: row; gap: 20px; width: 100%; padding: 20px; 
+            justify-content: center; align-items: center; flex-wrap: wrap; /* スマホでボタンがはみ出ないよう折り返し許可 */
+        }
+
+        /* スキップボタン (動画上の×) */
+        .skip-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #999;
+            width: 36px; height: 36px; border-radius: 50%;
+            font-size: 1.2rem; line-height: 1; cursor: pointer; pointer-events: auto;
+            display: flex; justify-content: center; align-items: center;
+            transition: 0.2s; z-index: 60; opacity: 0; transform: scale(0.8);
+        }
+        .skip-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
+        .popup-overlay.is-visible .skip-btn {
+            opacity: 1; transform: scale(1);
+            transition: opacity 0.3s ease 0.5s, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s;
+        }
+
+        /* --- 5. アニメーション定義 (下から飛び出す) --- */
+        @keyframes popUpSlide {
+            0% { opacity: 0; transform: translateY(60px) scale(0.8); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* --- 6. ボタンデザイン --- */
+        /* Control (従来型) */
+        .btn-control { background: #fff; color: #333; border: 1px solid #ccc; padding: 10px 30px; border-radius: 4px; font-size: 1rem; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: auto; }
+        
+        /* Experimental (提案型 - マテリアル感) */
+        .btn-tactile {
+            width: 160px; height: 120px; border: none; border-radius: 20px; color: white; font-size: 1.1rem; font-weight: bold;
+            cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            /* 通常時の影 */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2); 
+            transition: all 0.1s ease; 
+            pointer-events: auto;
+            opacity: 0; /* アニメーション前は隠す */
+        }
+
+        /* 表示時のアニメーション適用 */
+        .popup-overlay.is-visible .btn-tactile { animation: popUpSlide 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .popup-overlay.is-visible .btn-tactile:nth-child(2) { animation-delay: 0.1s; } /* 2つ目は少し遅らせる */
+
+        .btn-tactile:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 30px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4); }
+        
+        /* ★クリック時の押し込み演出 */
+        .btn-tactile:active { 
+            transform: translateY(4px) scale(0.96) !important; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2) !important;
+        }
+        /* ★連打防止（無効化時）のスタイル */
+        .btn-tactile:disabled, .btn-control:disabled {
+            cursor: default; opacity: 0.7; pointer-events: none;
+        }
+
+        .btn-tactile span { font-size: 0.8rem; font-weight: normal; margin-top: 5px; opacity: 0.9; }
+        .btn-1_orange { background: linear-gradient(135deg, #ff6b6b, #ee5253); }
+        .btn-2_blue { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .btn-blue { background: linear-gradient(135deg, #4facfe, #00f2fe); width: 200px; }
+
+        /* --- 7. iFrame (Webサイト表示) エリア --- */
+        .iframe-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: #fff; display: none; }
+        .iframe-wrapper.active { display: block; }
         .iframe-content { width: 100%; height: 100%; border: none; }
+        .close-iframe-btn {
+            position: absolute; top: 10px; right: 10px; z-index: 101;
+            background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .question-text { 
+            position: absolute; top: 15%; width: 100%; text-align: center; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-weight: bold; 
+            opacity: 0; transform: translateY(-20px); transition: all 0.5s ease 0.2s; 
+            padding: 0 10px; /* スマホで文字が切れないように */
+        }
+        .popup-overlay.is-visible .question-text { opacity: 1; transform: translateY(0); }
+        
         .hidden { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="page-header">
-        <h1 class="page-title">動画広告体験デモ</h1>
-        <div id="stepIndicator" class="step-indicator">Step 1 / 5</div>
+    <div id="startView" class="info-container">
+        <h1 class="title-large">動画広告体験デモ</h1>
+        <p class="desc-text">これより3パターンの広告が表示されます。<br>続きを見たくなった方はクリック、飛ばしたい方はスキップ。</p>
+        <button class="btn-start" onclick="startExperiment()">開始</button>
     </div>
 
-    <div class="video-container">
-        <video id="myVideo" autoplay muted playsinline controls width="640" height="360">
-            お使いのブラウザは動画タグに対応していません。
-        </video>
+    <div id="finishView" class="info-container">
+        <h1 class="title-large">全てのステップが終了しました。</h1>
+        <p class="desc-text">ご協力ありがとうございました。<br>アンケート回答にお戻りください。</p>
+        <div class="review-links">
+            <p style="font-size:0.9rem; color:#888; margin-bottom:10px;">▼ for administrative</p>
+            <a href="?step=1" class="review-link-item">S1_control</a>
+            <a href="?step=2" class="review-link-item">S2_single</a>
+            <a href="?step=3" class="review-link-item">S3_double</a>
+        </div>
     </div>
 
-    <div id="interstitialOverlay" class="popup-overlay">
-        <div class="popup-content">
-            <div class="popup-header">
-                <p class="popup-header-text" id="popupTitle">ⓘ広告</p>
-                <button id="nextScenarioButton" class="popup-close-button">Ｘ</button>
-            </div>
-            <div class="main-content-area">
-                <div id="choicesContainer" class="choices-container"></div>
-                <div id="iframeWrapper" class="iframe-wrapper hidden">
-                    <iframe id="interstitialFrame" class="iframe-content" src=""></iframe>
-                </div>
-            </div>
+    <div id="experimentView" class="video-wrapper">
+        <div class="page-header"><span id="stepBadge" class="step-badge">Step 1</span></div>
+        <video id="myVideo" playsinline width="640" height="360" muted>
+            <source src="demo_video.mp4" type="video/mp4"> </video>
+
+        <div id="interstitialOverlay" class="popup-overlay">
+            <div id="bgLayer" class="bg-layer"></div>
+            <button id="skipOverlayBtn" class="skip-btn">✕</button>
+            <div id="questionText" class="question-text hidden">今の気分はどっち？</div>
+            <div id="choicesContainer" class="choices-container"></div>
+        </div>
+
+        <div id="iframeWrapper" class="iframe-wrapper">
+            <button id="closeIframeBtn" class="close-iframe-btn">✕（次へ進む）</button>
+            <iframe id="interstitialFrame" class="iframe-content" src=""></iframe>
         </div>
     </div>
 
     <script>
-        // ▼▼▼▼▼ GASのURL (要確認) ▼▼▼▼▼
-        const POST_URL = 'https://script.google.com/macros/s/AKfycbzzMRUbz5eVpJGZPmGPRQ8rlHZvaS10ySDvFphGwOGqz15avk5dwSrmBp_TIgZlQEEK/exec'; 
+        // ▼▼▼ GAS設定 (URLを書き換えてください) ▼▼▼
+        const POST_URL = 'https://script.google.com/macros/s/AKfycbzzMRUbz5eVpJGZPmGPRQ8rlHZvaS10ySDvFphGwOGqz15avk5dwSrmBp_TIgZlQEEK/exec';
 
-        // --- ユーザーID生成 ---
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-        const USER_ID = generateUUID();
-        console.log("UserID:", USER_ID);
-
-        // --- シナリオ設定 ---
-        const scenarioData = [
-            {
-                // ▼ 動画ファイル名（同じフォルダに置いてあるファイル名、またはネット上のURL）
-                videoSrc: "1_video_eat.mp4",
-                // ▼ 背景画像（動画が終わった後に後ろに出る画像）
-                bgImage: "image_1_eat.png",
-                // ▼ ボタンの設定（いくつでも増やせる）
-                choices: [{ text: "「みなかみ蕎麦」の詳細はこちら", url: "https://enjoy-minakami.jp/eat.php" }],
-                // ▼ 演出設定（フェード秒数、ポップアップのタイトル）
-                styleSettings: { transition: "none", title: "１" }
+        // --- 設定データ ---
+        // videoSrc: 同じ動画ファイルを指定して比較検証を行う
+        // bgImage: 動画のラストシーンの静止画を指定すると、よりシームレスになります
+        const scenarioConfig = {
+            1: {
+                type: 'control', videoSrc: "video_4_outdoor.mp4", bgImage: "image_4_outdoor.png", 
+                choices: [ { text: "詳しくはこちら", url: "https://enjoy-minakami.jp/", style: "btn-control" } ],
+                question: null
             },
-            {
-                videoSrc: "2_video_buy.mp4",
-                bgImage: "image_2_buy.png",
-                choices: [{ text: "道の駅に興味はありませんか？", url: "https://enjoy-minakami.jp/buy.php" }],
-                styleSettings: { transition: "opacity 1.0s ease-in-out", title: "２" }
+            2: {
+                type: 'single', videoSrc: "video_4_outdoor.mp4", bgImage: "image_4_outdoor.png",
+                choices: [ { text: "詳しくはこちら<br><span>公式サイトを見る</span>", url: "https://enjoy-minakami.jp/outdoor.php", style: "btn-tactile btn-blue" } ],
+                question: null
             },
-            {
-                videoSrc: "3_video_place.mp4",
-                bgImage: "image_3_place.png",
+            3: {
+                type: 'double', videoSrc: "video_4_outdoor.mp4", bgImage: "image_4_outdoor.png",
                 choices: [
-                    { text: "「パワースポット」をチェック", url: "https://enjoy-minakami.jp/see.php" },
-                    { text: "「紅葉スポット」をチェック", url: "https://enjoy-minakami.jp/place.php" }
+                    { text: "温泉！<br><span>Relax</span>", url: "https://enjoy-minakami.jp/spa.php", style: "btn-tactile btn-1_orange" },
+                    { text: "スキー！<br><span>Active</span>", url: "https://enjoy-minakami.jp/outdoor.php", style: "btn-tactile btn-2_blue" }
                 ],
-                styleSettings: { transition: "none", title: "３" }
-            },
-            {
-                videoSrc: "4_video_outdoor.mp4",
-                bgImage: "image_4_outdoor.png",
-                choices: [
-                    { text: "冬と言えば「スキー」", url: "https://enjoy-minakami.jp/outdoor.php" },
-                    { text: "冬と言えば「温泉」", url: "https://enjoy-minakami.jp/spa.php" }
-                ],
-                styleSettings: { transition: "opacity 1.0s ease-in-out", title: "４" }
-            },
-            {
-                videoSrc: "5_video_stay.mp4",
-                bgImage: "image_5_stay.png",
-                choices: [{ text: "旅館の詳細はこちら", url: "https://enjoy-minakami.jp/stay.php" }],
-                styleSettings: { transition: "none", title: "５" }
+                question: "冬の旅行先といえば？"
             }
-        ];
+        };
 
-        // --- 変数 ---
-        let currentIndex = 0;
+        // --- ID管理 (トップに戻ると新規発行、実験中は維持) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentStep = parseInt(urlParams.get('step'));
+        let USER_ID;
+
+        if (!currentStep) {
+            // トップ画面(Step指定なし)に来たら、必ず新しいIDを生成して保存
+            USER_ID = 'user_' + Math.random().toString(36).substr(2, 9);
+            sessionStorage.setItem('exp_user_id', USER_ID);
+        } else {
+            // 実験中は保存されたIDを使用
+            USER_ID = sessionStorage.getItem('exp_user_id');
+            if (!USER_ID) { // 直リンクなどでIDが無い場合
+                USER_ID = 'user_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('exp_user_id', USER_ID);
+            }
+        }
+        
+        // --- 要素取得 ---
+        const startView = document.getElementById('startView');
+        const finishView = document.getElementById('finishView');
+        const experimentView = document.getElementById('experimentView');
+        const stepBadge = document.getElementById('stepBadge');
+        
         const video = document.getElementById('myVideo');
-        const stepIndicator = document.getElementById('stepIndicator');
         const overlay = document.getElementById('interstitialOverlay');
-        const popupTitle = document.getElementById('popupTitle');
         const choicesContainer = document.getElementById('choicesContainer');
+        const questionText = document.getElementById('questionText');
+        const bgLayer = document.getElementById('bgLayer');
+        
+        const skipOverlayBtn = document.getElementById('skipOverlayBtn');
         const iframeWrapper = document.getElementById('iframeWrapper');
         const iframe = document.getElementById('interstitialFrame');
-        const nextButton = document.getElementById('nextScenarioButton');
+        const closeIframeBtn = document.getElementById('closeIframeBtn');
 
-        function init() { loadScenario(0); }
+        // --- 初期表示処理 ---
+        if (!currentStep) {
+            startView.classList.add('active');
+        } else if (currentStep > 3) {
+            finishView.classList.add('active');
+        } else {
+            experimentView.classList.add('active');
+            setupScenario(currentStep);
+        }
 
-        function loadScenario(index) {
-            const data = scenarioData[index];
-            
-            // UIリセット
-            overlay.classList.remove('is-visible');
-            overlay.style.transition = ''; 
-            choicesContainer.classList.remove('hidden');
-            iframeWrapper.classList.add('hidden');
-            iframe.src = 'about:blank';
-            document.body.style.overflow = 'auto';
+        // 実験開始
+        function startExperiment() { window.location.href = "?step=1"; }
 
-            // データ反映
-            stepIndicator.textContent = `Step ${index + 1} / ${scenarioData.length}`;
+        // シナリオセットアップ
+        function setupScenario(stepIndex) {
+            const data = scenarioConfig[stepIndex];
             video.src = data.videoSrc;
-            choicesContainer.style.backgroundImage = `url('${data.bgImage}')`;
-            if(data.styleSettings.title) popupTitle.textContent = data.styleSettings.title;
-
-            // ボタン生成
+            stepBadge.textContent = `Step ${stepIndex}`;
+            
+             bgLayer.style.backgroundImage = `url('${data.bgImage}')`;
+            
             choicesContainer.innerHTML = '';
-            data.choices.forEach((choice, btnIndex) => {
+            data.choices.forEach((choice, idx) => {
                 const btn = document.createElement('button');
-                btn.textContent = choice.text;
-                btn.className = 'choice-button';
+                btn.innerHTML = choice.text;
+                btn.className = choice.style;
                 
-                const buttonId = `${index + 1}-${btnIndex + 1}`;
+                // クリックイベント
+                btn.onclick = function() {
+                    // ★連打防止: 全ボタンを無効化
+                    const allBtns = choicesContainer.querySelectorAll('button');
+                    allBtns.forEach(b => b.disabled = true);
 
-                btn.addEventListener('click', () => {
-                    sendLogToGAS(index + 1, buttonId, choice.text, "clicked");
-                    console.log(`Navigating to: ${choice.url}`);
-                    choicesContainer.classList.add('hidden');
-                    iframeWrapper.classList.remove('hidden');
-                    iframe.src = choice.url;
-                });
+                    sendLogToGAS(stepIndex, `btn-${idx}`, choice.text, "click");
+                    
+                    // 0.1秒待ってから遷移（押し込みアニメーションを見せるため）
+                    setTimeout(() => {
+                        overlay.classList.remove('is-visible'); 
+                        setTimeout(() => showIframe(choice.url), 300);
+                    }, 100); 
+                };
                 choicesContainer.appendChild(btn);
             });
 
-            // 動画再生（エラーハンドリングあり）
-            video.load();
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("自動再生がブロックされました。ユーザー操作を待ちます。", error);
-                });
-            }
-        }
-
-        // 動画終了後動作
-        video.addEventListener('ended', () => {
-            const settings = scenarioData[currentIndex].styleSettings;
-            overlay.style.transition = settings.transition ? settings.transition : 'none';
-            
-            setTimeout(() => { overlay.classList.add('is-visible'); }, 20);
-            
-            sendLogToGAS(currentIndex + 1, "none", "Video Ended", "view");
-            document.body.style.overflow = 'hidden';
-        });
-
-        // 閉じるボタン
-        nextButton.addEventListener('click', () => {
-            sendLogToGAS(currentIndex + 1, "close", "Close Button", "skipped/next");
-            
-            currentIndex++;
-            if (currentIndex < scenarioData.length) {
-                loadScenario(currentIndex);
+            if (data.question) {
+                questionText.textContent = data.question;
+                questionText.classList.remove('hidden');
             } else {
-                alert("これにて終了です。アンケートにお戻りください。");
-                overlay.classList.remove('is-visible');
-                document.body.style.overflow = 'auto';
+                questionText.classList.add('hidden');
             }
-        });
 
-        // ▼▼▼▼▼ ログ送信関数 (fetch + text/plain) ▼▼▼▼▼
-        function sendLogToGAS(step, buttonId, targetName, action) {
-            if (POST_URL.includes('XXXXXXXXXXXXXXXXXXXX')) return;
-
-            const data = {
-                userId: USER_ID,
-                step: step,
-                buttonId: buttonId,
-                target: targetName,
-                action: action
-            };
-
-            // POST送信だが、mode: 'no-cors' と headers: 'text/plain' を組み合わせる
-            // これによりブラウザは単純なリクエストとして処理し、ブロックされない
-            fetch(POST_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(() => console.log("Log sent:", data))
-            .catch(err => console.error("Log failed:", err));
+            // 動画リセット＆再生
+            video.currentTime = 0;
+            video.muted = true; // 自動再生のためミュート推奨
+            video.play().catch(e => console.log("Autoplay blocked", e));
         }
 
-        init();
+        // 動画終了イベント
+        video.addEventListener('ended', () => {
+            const data = scenarioConfig[currentStep];
+            sendLogToGAS(currentStep, "video", "Video Ended", "view");
+            overlay.classList.add('is-visible');
+            overlay.style.backgroundColor = data.type === 'control' ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)';
+        });
+
+        // iFrame表示
+        function showIframe(url) {
+            iframe.src = url;
+            iframeWrapper.classList.add('active');
+        }
+
+        // 次のステップへ進む
+        function proceedToNextStep() {
+            const nextStep = currentStep + 1;
+            setTimeout(() => {
+                window.location.href = `?step=${nextStep}`;
+            }, 300);
+        }
+
+        // Webサイト閲覧後の閉じるボタン
+        closeIframeBtn.onclick = () => {
+            iframeWrapper.classList.remove('active');
+            iframe.src = "";
+            proceedToNextStep();
+        };
+
+        // オーバーレイのスキップボタン（動画上の×）
+        skipOverlayBtn.onclick = () => {
+            sendLogToGAS(currentStep, "skip-btn", "Overlay Skip", "skipped");
+            overlay.classList.remove('is-visible');
+            proceedToNextStep();
+        };
+
+        // ログ送信
+        function sendLogToGAS(step, buttonId, targetName, action) {
+            if (POST_URL.includes('XXXX')) return; // URL未設定時は送信しない
+            const data = {
+                userId: USER_ID, step: step, buttonId: buttonId, 
+                target: targetName, action: action, timestamp: new Date().toISOString()
+            };
+            fetch(POST_URL, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(data)
+            }).catch(console.error);
+        }
     </script>
 </body>
 </html>
