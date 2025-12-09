@@ -170,10 +170,24 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
+        /* --- 修正版: 質問テキスト --- */
         .question-text { 
-            position: absolute; top: 15%; width: 100%; text-align: center; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-weight: bold; 
-            opacity: 0; transform: translateY(-20px); transition: all 0.5s ease 0.2s; 
-            padding: 0 10px; /* スマホで文字が切れないように */
+            /* position: absolute; top: 15%; width: 100%; ←これらを削除し、以下に変更 */
+            position: relative;
+            width: auto;
+            margin-bottom: 15px; /* ボタンとの間に隙間を作る */
+            
+            text-align: center; 
+            font-size: 1.2rem; /* スマホで見やすいように少し調整 (1.5remだと大きすぎる場合があるため) */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
+            font-weight: bold; 
+            
+            /* アニメーション用設定（維持） */
+            opacity: 0; 
+            transform: translateY(-20px); 
+            transition: all 0.5s ease 0.2s; 
+            padding: 0 10px;
+            z-index: 65; /* ボタンより手前に来るように念のため */
         }
         .popup-overlay.is-visible .question-text { opacity: 1; transform: translateY(0); }
         
