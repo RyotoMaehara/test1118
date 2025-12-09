@@ -148,6 +148,13 @@
             transform: translateY(4px) scale(0.96) !important; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2) !important;
         }
+        /* ★追加: JSで付与する「押し込み維持」クラス */
+        .btn-tactile.is-pressed {
+            transform: translateY(4px) scale(0.96) !important; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2) !important;
+            transition: none; /* 即座にへこませる */
+        }
+        
         /* ★連打防止（無効化時）のスタイル */
         .btn-tactile:disabled, .btn-control:disabled {
             cursor: default; opacity: 0.7; pointer-events: none;
@@ -327,9 +334,13 @@
                 
                 // クリックイベント
                 btn.onclick = function() {
-                    // ★連打防止: 全ボタンを無効化
+                    // 連打防止: 全ボタンを無効化
                     const allBtns = choicesContainer.querySelectorAll('button');
                     allBtns.forEach(b => b.disabled = true);
+                    
+                    // ★追加: クリックされたこのボタンに「押し込みクラス」を強制付与
+                    // これにより、指を離しても0.2秒間はへこんだままに
+                    btn.classList.add('is-pressed');
 
                     sendLogToGAS(stepIndex, `btn-${idx}`, choice.text, "click");
                     
