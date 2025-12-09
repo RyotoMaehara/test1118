@@ -77,7 +77,6 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; 
             z-index: 50; visibility: hidden; opacity: 0; 
-            transition: opacity 0.5s ease;
         }
         .popup-overlay.is-visible { visibility: visible; opacity: 1; }
 
@@ -126,12 +125,16 @@
             flex: 1;          /* ★重要: 画面幅に合わせて均等に伸縮させる */
             max-width: 180px; /* PCで大きくなりすぎないように上限を設定 */
             min-width: 110px; /* スマホで小さくなりすぎないように下限を設定 */
-            
             height: 120px; 
+            
             border: none; border-radius: 20px; color: white; font-size: 1.1rem; font-weight: bold;
             cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            /* 通常時の影 */
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2); 
+            /* ★マテリアル感を強調する影と光 */
+            box-shadow: 
+                0 10px 20px rgba(0,0,0,0.5),           /* ドロップシャドウ（影） */
+                inset 0 3px 0 rgba(255,255,255,0.5),   /* 上部のハイライト（太く・濃く） */
+                inset 0 -3px 0 rgba(0,0,0,0.1);        /* 下部のシェード（厚みを出す） */
+            
             transition: all 0.1s ease; 
             pointer-events: auto;
             opacity: 0; /* アニメーション前は隠す */
@@ -143,15 +146,13 @@
 
         .btn-tactile:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 30px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4); }
         
-        /* ★クリック時の押し込み演出 */
-        .btn-tactile:active { 
+        /* 押し込み状態（is-pressed / active）も整合性を取る */
+        .btn-tactile:active, .btn-tactile.is-pressed { 
             transform: translateY(4px) scale(0.96) !important; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2) !important;
-        }
-        /* ★追加: JSで付与する「押し込み維持」クラス */
-        .btn-tactile.is-pressed {
-            transform: translateY(4px) scale(0.96) !important; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2) !important;
+            box-shadow: 
+                0 2px 5px rgba(0,0,0,0.5), 
+                inset 0 2px 0 rgba(255,255,255,0.3), /* 押し込んだ時は少し光が弱まる演出 */
+                inset 0 -1px 0 rgba(0,0,0,0.1) !important;
             transition: none; /* 即座にへこませる */
         }
         
@@ -253,11 +254,13 @@
             1: {
                 type: 'control', videoSrc: "4_video_outdoor.mp4", bgImage: "image_4_outdoor.png", 
                 choices: [ { text: "詳しくはこちら", url: "https://enjoy-minakami.jp/", style: "btn-control" } ],
+                transition: "none", // ★Step 1は「パッ」と出る
                 question: null
             },
             2: {
                 type: 'single', videoSrc: "4_video_outdoor.mp4", bgImage: "image_4_outdoor.png",
                 choices: [ { text: "詳しくはこちら<br><span>公式サイトを見る</span>", url: "https://enjoy-minakami.jp/outdoor.php", style: "btn-tactile btn-blue" } ],
+                transition: "opacity 1.0s ease", // ★Step 2は1.0s
                 question: null
             },
             3: {
@@ -266,6 +269,7 @@
                     { text: "温泉！<br><span>Relax</span>", url: "https://enjoy-minakami.jp/spa.php", style: "btn-tactile btn-1_orange" },
                     { text: "スキー！<br><span>Active</span>", url: "https://enjoy-minakami.jp/outdoor.php", style: "btn-tactile btn-2_blue" }
                 ],
+                transition: "opacity 1.0s ease", // ★Step 3は1.0s
                 question: "冬の旅行先といえば？"
             }
         };
