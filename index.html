@@ -260,7 +260,7 @@
             2: {
                 type: 'single', videoSrc: "4_video_outdoor.mp4", bgImage: "image_4_outdoor.png",
                 choices: [ { text: "詳しくはこちら<br><span>公式サイトを見る</span>", url: "https://enjoy-minakami.jp/outdoor.php", style: "btn-tactile btn-blue" } ],
-                transition: "opacity 1.0s ease", // ★Step 2は1.0s
+                transition: "opacity 1.2s ease", // ★Step 2は1.2s
                 question: null
             },
             3: {
@@ -269,7 +269,7 @@
                     { text: "温泉！<br><span>Relax</span>", url: "https://enjoy-minakami.jp/spa.php", style: "btn-tactile btn-1_orange" },
                     { text: "スキー！<br><span>Active</span>", url: "https://enjoy-minakami.jp/outdoor.php", style: "btn-tactile btn-2_blue" }
                 ],
-                transition: "opacity 1.0s ease", // ★Step 3は1.0s
+                transition: "opacity 1.2s ease", // ★Step 3は1.2s
                 question: "冬の旅行先といえば？"
             }
         };
@@ -343,7 +343,7 @@
                     allBtns.forEach(b => b.disabled = true);
                     
                     // ★追加: クリックされたこのボタンに「押し込みクラス」を強制付与
-                    // これにより、指を離しても0.2秒間はへこんだままに
+                    // これにより、指を離しても0.15秒間はへこんだままに
                     btn.classList.add('is-pressed');
 
                     sendLogToGAS(stepIndex, `btn-${idx}`, choice.text, "click");
