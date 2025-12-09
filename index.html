@@ -344,11 +344,11 @@
 
                     sendLogToGAS(stepIndex, `btn-${idx}`, choice.text, "click");
                     
-                    // 0.1秒待ってから遷移（押し込みアニメーションを見せるため）
+                    // 0.15秒待ってから遷移（押し込みアニメーションを見せるため）
                     setTimeout(() => {
                         overlay.classList.remove('is-visible'); 
                         setTimeout(() => showIframe(choice.url), 300);
-                    }, 100); 
+                    }, 150); 
                 };
                 choicesContainer.appendChild(btn);
             });
