@@ -79,9 +79,16 @@
         .popup-overlay.is-visible { visibility: visible; opacity: 1; }
 
         .bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: -1; filter: brightness(0.4); }
+        /* --- 修正版: コンテナ設定 --- */
         .choices-container { 
-            display: flex; flex-direction: row; gap: 20px; width: 100%; padding: 20px; 
-            justify-content: center; align-items: center; flex-wrap: wrap; /* スマホでボタンがはみ出ないよう折り返し許可 */
+            display: flex; 
+            flex-direction: row; 
+            gap: 10px; /* 隙間を20pxから10pxに短縮 */
+            width: 100%; 
+            padding: 10px; /* 余白を20pxから10pxに短縮 */
+            justify-content: center; 
+            align-items: center; 
+            flex-wrap: nowrap; /* ★重要: 折り返しを禁止して横並びを強制 */
         }
 
         /* スキップボタン (動画上の×) */
@@ -109,9 +116,16 @@
         /* Control (従来型) */
         .btn-control { background: #fff; color: #333; border: 1px solid #ccc; padding: 10px 30px; border-radius: 4px; font-size: 1rem; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: auto; }
         
-        /* Experimental (提案型 - マテリアル感) */
+        /* --- 修正版: 提案型 - マテリアル感ボタン（Step2, 3用） --- */
         .btn-tactile {
-            width: 160px; height: 120px; border: none; border-radius: 20px; color: white; font-size: 1.1rem; font-weight: bold;
+            /* width: 160px;  ←固定幅を削除 */
+            width: auto;      /* 自動調整 */
+            flex: 1;          /* ★重要: 画面幅に合わせて均等に伸縮させる */
+            max-width: 180px; /* PCで大きくなりすぎないように上限を設定 */
+            min-width: 110px; /* スマホで小さくなりすぎないように下限を設定 */
+            
+            height: 120px; 
+            border: none; border-radius: 20px; color: white; font-size: 1.1rem; font-weight: bold;
             cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;
             /* 通常時の影 */
             box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2); 
@@ -136,10 +150,15 @@
             cursor: default; opacity: 0.7; pointer-events: none;
         }
 
-        .btn-tactile span { font-size: 0.8rem; font-weight: normal; margin-top: 5px; opacity: 0.9; }
+        .btn-tactile span { 
+            font-size: 0.75rem; /* 0.8rem から少し小さく */
+            font-weight: normal; margin-top: 5px; opacity: 0.9; 
+            white-space: nowrap; /* ★勝手な改行を防ぐ */
+        }
         .btn-1_orange { background: linear-gradient(135deg, #ff6b6b, #ee5253); }
         .btn-2_blue { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-        .btn-blue { background: linear-gradient(135deg, #4facfe, #00f2fe); width: 200px; }
+        .btn-blue { background: linear-gradient(135deg, #4facfe, #00f2fe); max-width: 240px; /* width: 200px から max-width に変更 */
+        }
 
         /* --- 7. iFrame (Webサイト表示) エリア --- */
         .iframe-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: #fff; display: none; }
